@@ -1,0 +1,23 @@
+{
+  "name": "sebbye",
+  "version": "1.0.0",
+  "description": "https://github.com/yuvlian/sebbye",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && vite build && node scripts/copy-icons.js"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.43",
+    "@types/crypto-js": "^4.2.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^5.1.4",
+    "typescript": "^5.5.2",
+    "vite": "^8.0.16"
+  }
+}

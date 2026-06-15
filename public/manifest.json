@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "sebbye",
+  "version": "1.0.0",
+  "description": "https://github.com/yuvlian/sebbye",
+  "permissions": [
+    "webRequest",
+    "windows",
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "assets/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "src/popup/index.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
