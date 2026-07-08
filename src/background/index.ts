@@ -57,6 +57,22 @@ chrome.runtime.onMessage.addListener(
         sendResponse(sebController.getStatus());
         break;
 
+      case 'updateSettings':
+        if (message.settings) {
+          const { displayFakeBars, displayArrows } = message.settings;
+          sebController
+            .updateSettings(displayFakeBars, displayArrows)
+            .then(() => {
+              sendResponse(sebController.getStatus());
+            })
+            .catch((error: any) => {
+              sendResponse(sebController.getStatus(`Error: ${error.message}`));
+            });
+          return true;
+        }
+        sendResponse({ errorMsg: 'Missing settings' });
+        break;
+
       case 'updateRqUrlsFilter':
         if (message.rqUrlsFilter) {
           sebController

@@ -9,10 +9,9 @@ import { SebFile } from '../../utils/seb-tools';
 interface FileUploaderProps {
   onFileLoaded: (sebFile: SebFile) => void;
   decryptorMethod: DecryptionMethod;
-  onDecryptorChange: (method: DecryptionMethod) => void;
 }
 
-export const FileUploader: React.FC<FileUploaderProps> = ({ onFileLoaded, decryptorMethod, onDecryptorChange }) => {
+export const FileUploader: React.FC<FileUploaderProps> = ({ onFileLoaded, decryptorMethod }) => {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -37,17 +36,6 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileLoaded, decryp
 
   return (
     <div className="file-uploader">
-      <div className="decryptor-select">
-        <label htmlFor="decryptor-select">Decryption Method:</label>
-        <select
-          id="decryptor-select"
-          value={decryptorMethod}
-          onChange={e => onDecryptorChange(e.target.value as DecryptionMethod)}
-        >
-          <option value="None">None</option>
-          <option value="Test">Test</option>
-        </select>
-      </div>
 
       <label className="file-input-label">
         <span className="file-input-text">Choose SEB Configuration File</span>

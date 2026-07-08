@@ -3,7 +3,7 @@
  */
 
 export interface SebMessage {
-  action: 'enable' | 'disable' | 'getStatus' | 'updateRqUrlsFilter';
+  action: 'enable' | 'disable' | 'getStatus' | 'updateRqUrlsFilter' | 'updateSettings';
   sebXML?: string;
   sebConfig?: {
     dictionary: Record<string, unknown>;
@@ -12,6 +12,10 @@ export interface SebMessage {
     configHash: string;
   };
   rqUrlsFilter?: string[];
+  settings?: {
+    displayFakeBars?: boolean;
+    displayArrows?: boolean;
+  };
 }
 
 export interface SebStatus {
@@ -20,4 +24,8 @@ export interface SebStatus {
   sebStartUrl?: string;
   rqUrlsFilter?: string[];
   errorMsg?: string;
+  settings?: {
+    displayFakeBars: boolean;
+    displayArrows: boolean;
+  };
 }

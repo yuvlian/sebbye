@@ -19,12 +19,34 @@ export class SebController {
   private rqUrlsFilter: string[] = [];
   private requestListener: ((details: chrome.webRequest.OnBeforeRequestDetails) => chrome.webRequest.BlockingResponse | undefined) | undefined = undefined;
 
+  // Bullshit to prevent duplicate ID collision errors
+  private dynamicRuleIds: number[] = Array.from({ length: 50 }, (_, i) => 100 + i);
+  private dynamicRuleIndex: number = 0;
+  private urlToRuleId: Map<string, number> = new Map();
+  private ruleIdToUrl: Map<number, string> = new Map();
+
+  private displayFakeBars: boolean = true;
+  private displayArrows: boolean = true;
+
+  constructor() {
+    chrome.storage.local.get(['displayFakeBars', 'displayArrows'], (result) => {
+      if (result.displayFakeBars !== undefined && result.displayFakeBars !== null) {
+        this.displayFakeBars = Boolean(result.displayFakeBars);
+      }
+      if (result.displayArrows !== undefined && result.displayArrows !== null) {
+        this.displayArrows = Boolean(result.displayArrows);
+      }
+      this.broadcastStatus();
+    });
+  }
+
   async updateRqUrlsFilter(urls: string[]): Promise<void> {
     if (!this.isEnabled) {
       throw new Error('Not enabled');
     }
     this.rqUrlsFilter = urls;
     await this.refreshRules();
+    this.broadcastStatus();
   }
 
   async refreshRules(): Promise<void> {
@@ -113,10 +135,29 @@ export class SebController {
       if (this.isEnabled && this.sebFile) {
         try {
           const configKey = this.sebFile.getConfigKey(details.url);
+
+          // Check if a rule is already active for this exact URL
+          if (this.urlToRuleId.has(details.url)) {
+            return undefined;
+          }
+
+          const ruleId = this.dynamicRuleIds[this.dynamicRuleIndex];
+          this.dynamicRuleIndex = (this.dynamicRuleIndex + 1) % this.dynamicRuleIds.length;
+
+          // Clean up old mapping if this ruleId is reused
+          const previousUrl = this.ruleIdToUrl.get(ruleId);
+          if (previousUrl) {
+            this.urlToRuleId.delete(previousUrl);
+          }
+
+          this.urlToRuleId.set(details.url, ruleId);
+          this.ruleIdToUrl.set(ruleId, details.url);
+
           chrome.declarativeNetRequest.updateSessionRules({
+            removeRuleIds: [ruleId],
             addRules: [
               {
-                id: Math.floor(Math.random() * 1000) + 100,
+                id: ruleId,
                 priority: 3,
                 action: {
                   type: 'modifyHeaders' as const,
@@ -155,6 +196,8 @@ export class SebController {
     chrome.webRequest.onBeforeRequest.addListener(this.requestListener, {
       urls: ['<all_urls>'],
     });
+
+    this.broadcastStatus();
   }
 
   async disable(): Promise<void> {
@@ -165,6 +208,11 @@ export class SebController {
     this.isEnabled = false;
     this.sebFile = undefined;
     this.rqUrlsFilter = [];
+
+    // Clear dynamic rules tracking cache
+    this.urlToRuleId.clear();
+    this.ruleIdToUrl.clear();
+    this.dynamicRuleIndex = 0;
 
     // Remove request listener
     if (this.requestListener) {
@@ -177,6 +225,20 @@ export class SebController {
     await chrome.declarativeNetRequest.updateSessionRules({
       removeRuleIds,
     });
+
+    this.broadcastStatus();
+  }
+
+  async updateSettings(displayFakeBars?: boolean, displayArrows?: boolean): Promise<void> {
+    if (displayFakeBars !== undefined) this.displayFakeBars = displayFakeBars;
+    if (displayArrows !== undefined) this.displayArrows = displayArrows;
+
+    await chrome.storage.local.set({
+      displayFakeBars: this.displayFakeBars,
+      displayArrows: this.displayArrows,
+    });
+
+    this.broadcastStatus();
   }
 
   getStatus(errorMsg?: string): SebStatus {
@@ -185,7 +247,24 @@ export class SebController {
       sebDictionnary: this.sebFile?.getDictionary(),
       sebStartUrl: this.sebFile?.getStartUrl(),
       rqUrlsFilter: this.rqUrlsFilter,
+      settings: {
+        displayFakeBars: this.displayFakeBars,
+        displayArrows: this.displayArrows,
+      },
       errorMsg,
     };
+  }
+
+  private broadcastStatus(): void {
+    const status = this.getStatus();
+    chrome.tabs.query({}, (tabs) => {
+      for (const tab of tabs) {
+        if (tab.id) {
+          chrome.tabs.sendMessage(tab.id, { action: 'statusChanged', status }).catch(() => {
+            // Ignore tab if content script is not loaded
+          });
+        }
+      }
+    });
   }
 }

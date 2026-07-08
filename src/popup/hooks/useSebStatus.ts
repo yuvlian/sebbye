@@ -10,6 +10,10 @@ export interface SebStatus {
   sebStartUrl?: string;
   rqUrlsFilter?: string[];
   errorMsg?: string;
+  settings?: {
+    displayFakeBars: boolean;
+    displayArrows: boolean;
+  };
 }
 
 export function useSebStatus() {
@@ -50,6 +54,18 @@ export function useSebStatus() {
     });
   }, [updateStatus]);
 
+  const updateSettings = useCallback((displayFakeBars: boolean, displayArrows: boolean) => {
+    return new Promise<SebStatus>((resolve) => {
+      chrome.runtime.sendMessage(
+        { action: 'updateSettings', settings: { displayFakeBars, displayArrows } },
+        (response: SebStatus) => {
+          updateStatus(response);
+          resolve(response);
+        }
+      );
+    });
+  }, [updateStatus]);
+
   return {
     status,
     tmpUrlsFilter,
@@ -57,5 +73,6 @@ export function useSebStatus() {
     updateStatus,
     disable,
     updateFilter,
+    updateSettings,
   };
 }

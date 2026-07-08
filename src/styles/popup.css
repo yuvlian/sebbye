@@ -68,6 +68,10 @@ body {
   padding: 20px 24px;
 }
 
+.popup-content > *:last-child {
+  margin-bottom: 0 !important;
+}
+
 .status-section {
   background: var(--color-surface);
   border-radius: var(--radius-md);

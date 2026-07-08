@@ -21,6 +21,7 @@ export const Popup: React.FC = () => {
     updateStatus,
     disable,
     updateFilter,
+    updateSettings,
   } = useSebStatus();
 
   const [decryptor, setDecryptor] = useState<DecryptionMethod>('None');
@@ -74,8 +75,49 @@ export const Popup: React.FC = () => {
           />
 
           {!status.enabled && (
-            <FileUploader onFileLoaded={handleFileLoaded} decryptorMethod={decryptor} onDecryptorChange={setDecryptor} />
+            <FileUploader onFileLoaded={handleFileLoaded} decryptorMethod={decryptor} />
           )}
+
+          <div className="status-section" style={{ marginTop: '12px' }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 600 }}>Settings</h3>
+            
+            {!status.enabled && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '6px 0' }}>
+                <span className="status-label" style={{ fontSize: '13px' }}>Decryption Method</span>
+                <select
+                  id="decryptor-select"
+                  value={decryptor}
+                  onChange={e => setDecryptor(e.target.value as DecryptionMethod)}
+                  style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)' }}
+                >
+                  <option value="None">None</option>
+                  <option value="Test">Test</option>
+                </select>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '6px 0' }}>
+              <span className="status-label" style={{ fontSize: '13px' }}>Display Fake Bars</span>
+              <input
+                type="checkbox"
+                id="displayFakeBars"
+                checked={status.settings?.displayFakeBars !== false}
+                onChange={(e) => updateSettings(e.target.checked, status.settings?.displayArrows !== false)}
+                style={{ cursor: 'pointer' }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '6px 0' }}>
+              <span className="status-label" style={{ fontSize: '13px' }}>Display Navigation Arrows</span>
+              <input
+                type="checkbox"
+                id="displayArrows"
+                checked={status.settings?.displayArrows !== false}
+                onChange={(e) => updateSettings(status.settings?.displayFakeBars !== false, e.target.checked)}
+                style={{ cursor: 'pointer' }}
+              />
+            </div>
+          </div>
 
           {status.enabled && (
             <FilterEditor
